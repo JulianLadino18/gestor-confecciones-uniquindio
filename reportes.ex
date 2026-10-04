@@ -1,4 +1,12 @@
+Code.require_file("liquidacion.ex")
+
 defmodule Reportes do
+    @moduledoc """
+    Módulo que sirva para generar los reportes que se requieren del programa.
+    - version: 1.0.1
+    - autores: Daniel Gil Fino,Julian Andres Ladino Nossa
+    - fecha: 2026-04-10
+    """
 
     # Desarrollo del reporte 1: lotes rechazados y motivos
 
@@ -63,6 +71,29 @@ defmodule Reportes do
             cumpli_todos_los_dias?: meta_todos,
             cumpli_almenos_un_dia?: meta_almenos_uno
         }
+    end
+
+    # Desarrollo del reporte 4: Generar el pago de todo los confeccionistas y ordenarlos de manera descendente.
+
+    def r4_liquidacion_confeccionistas_ordenada(lotes_validos) do
+        confeccionistas =
+            lotes_validos
+            |> Enum.map(&(&1.confeccionista))
+            |> Enum.uniq()
+        liquidaciones =
+            Enum.map(confeccionistas, fn confeccionista ->
+            dias_calculados = Liquidacion.calcular_valor_lotes_por_confeccionista(lotes_validos, confeccionista)
+            liq_final = Liquidacion.liquidar_confeccionista(dias_calculados)
+            total_prendas = Enum.reduce(dias_calculados, 0, fn dia, acc -> acc + dia.total_prendas end)
+            total_bonificaciones = Enum.reduce(dias_calculados, 0, fn dia, acc -> acc + dia.bonificacion_dia end)
+            %{confeccionista: confeccionista, prendas_totales: total_prendas, valor_lotes: liq_final.total_bruto - total_bonificaciones, bonificaciones: total_bonificaciones, descuento_alquiler: liq_final.descuento_alquiler, neto_a_pagar: liq_final.total_neto}
+            end)
+
+        # Ordenar de mayor a menor según el neto a pagar.
+        liquidaciones
+            |> Enum.sort_by(&(&1.neto_a_pagar), :desc)
+            |> Enum.with_index(1)
+            |> Enum.map(fn {liq, idx} -> Map.put(liq, :posicion, idx) end)
     end
 
     # Desarrollo del reporte 5: confeccionistas con mayor produccion
@@ -160,6 +191,17 @@ defmodule Reportes do
         end
     end
 
+    #Desarrollo del reporte 7: Total que debe pagar el taller y el promedio por prenda
+
+    def r7_total_neto(liquidaciones) do
+        total_taller =
+            Enum.reduce(liquidaciones, 0, fn liquidacion, acc -> acc + liquidacion.neto_a_pagar end)
+        total_prendas =
+            Enum.reduce(liquidaciones, 0, fn liquidacion, acc -> acc + liquidacion.prendas_totales end)
+        promedio_por_prenda = total_taller / total_prendas
+        %{total_a_pagar: total_taller, total_de_prenda: total_prendas, promedio_por_prenda: promedio_por_prenda}
+    end
+
     #Desarrollo del reporte 8: confeccionistas que cubren todas las lineas
 
     def r8_cobertura_lineas(lotes_validos, lista_lineas) do
@@ -186,8 +228,4 @@ defmodule Reportes do
         def c2_combinacion_produccion_aliado(mapa_prendas_r3, taller_aliado) do
             Map.merge(mapa_prendas_r3, taller_aliado, fn _dia, prendas_r3, prendas_aliado -> prendas_r3 + prendas_aliado end)
         end
-
-
-
-
 end

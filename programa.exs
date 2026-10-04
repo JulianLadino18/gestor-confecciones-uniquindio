@@ -19,6 +19,8 @@ defmodule Programa do
       %{dia: 6, prendas: 600, confeccionista: "C3", linea: "L3", defectos: 0.02}
     ]
 
+    lotes = Datos.lotes()
+
     # 1 prueba de R3
     reporte_r3 = Reportes.r3_produccion_diaria(lotes_validos)
 
@@ -26,6 +28,23 @@ defmodule Programa do
     IO.inspect(reporte_r3.mapa_prendas_diarias, label: "Prendas por dia (1 a 6)")
     IO.puts("¿Alcanzo la meta todos los días?: #{reporte_r3.cumpli_todos_los_dias?}")
     IO.puts("¿Alcanzo la meta al menos un día?: #{reporte_r3.cumpli_almenos_un_dia?}\n")
+
+    # Prueba de R4
+    IO.puts("--- R4: PRODUCCIÓN DE CADA CONFECCIONISTA ---")
+    lista_r4 = Reportes.r4_liquidacion_confeccionistas_ordenada(lotes_validos)
+    |> IO.inspect()
+    IO.puts("==================================================")
+
+    # Prueba de R7  >>>>>>>>> IMPORTANTE! - DEPENDE DE R4 PARA FUNCIONAR
+    IO.puts("--- R7: RESUMEN DEL TALLER ---")
+    resumen_r7 = lista_r4
+    |> Reportes.r7_total_neto()
+    IO.puts("\n==================================================")
+    IO.puts("--- R7: TOTALES DEL TALLER Y PROMEDIO ---")
+    IO.puts("Total Neto a Pagar:  $#{:erlang.float_to_binary(resumen_r7.total_a_pagar * 1.0, decimals: 2)}")
+    IO.puts("Total de Prendas:    #{resumen_r7.total_de_prenda}")
+    IO.puts("Promedio por Prenda: $#{Float.round(resumen_r7.promedio_por_prenda, 2)}")
+    IO.puts("==================================================")
 
     # Prueba de C.2 combinar con el mapa de taller aliado
     IO.puts("--- C.2: COMBINACION CON TALLER ALIADO (Map.merge/3) ---")
@@ -42,7 +61,7 @@ defmodule Programa do
     IO.puts("==================================================")
 
     # Prueba de Liquidacion de C1
-    lotes = Datos.lotes()
+
     confeccionista = "C07"
     liquidacion =
       lotes
