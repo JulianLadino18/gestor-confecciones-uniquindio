@@ -42,7 +42,7 @@ defmodule Reportes do
     def r3_produccion_diaria(lotes_validos) do
         lotes_por_dia = Enum.group_by(lotes_validos, fn lote -> lote.dia end)
 
-       mapa_diario =
+    mapa_diario =
         1..6
         |>Enum.map(fn dia ->
             lotes = Map.get(lotes_por_dia, dia, [])
@@ -70,7 +70,7 @@ defmodule Reportes do
     def r5_ganadores_diarios(lotes_validos, _lista_confeccionistas) do
         lotes_por_dia = Enum.group_by(lotes_validos, fn lote -> lote.dia end)
 
-       resultados_por_dia =
+    resultados_por_dia =
         1..6
         |>Enum.map(fn dia ->
             lotes_dia = Map.get(lotes_por_dia, dia, [])
@@ -163,14 +163,14 @@ defmodule Reportes do
     #Desarrollo del reporte 8: confeccionistas que cubren todas las lineas
 
     def r8_cobertura_lineas(lotes_validos, lista_lineas) do
-       codigos_lineas_totales = lista_lineas |> Enum.map(fn linea -> linea.codigo end) |> MapSet.new()
+        codigos_lineas_totales = lista_lineas |> Enum.map(fn linea -> linea.codigo end) |> MapSet.new()
 
-       confeccionistas_cumplen =
+    confeccionistas_cumplen =
         lotes_validos
         |> Enum.group_by(fn lote -> lote.confeccionista end)
         |> Enum.filter(fn {_confeccionista, lotes} ->
-           lineas_trabajadas = lotes |> Enum.map(fn lote -> lote.linea end) |> MapSet.new()
-              MapSet.equal?(lineas_trabajadas, codigos_lineas_totales)
+            lineas_trabajadas = lotes |> Enum.map(fn lote -> lote.linea end) |> MapSet.new()
+                MapSet.equal?(lineas_trabajadas, codigos_lineas_totales)
         end)
         |> Enum.map(fn {confeccionista_cod, _lotes} -> confeccionista_cod end)
 
@@ -184,10 +184,10 @@ defmodule Reportes do
     # C.2 combinar la produccion diaria R3 con el mapa de taller_aliado
 
         def c2_combinacion_produccion_aliado(mapa_prendas_r3, taller_aliado) do
-          Map.merge(mapa_prendas_r3, taller_aliado, fn _dia, prendas_r3, prendas_aliado -> prendas_r3 + prendas_aliado end)
+            Map.merge(mapa_prendas_r3, taller_aliado, fn _dia, prendas_r3, prendas_aliado -> prendas_r3 + prendas_aliado end)
         end
 
 
 
 
-  end
+end

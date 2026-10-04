@@ -1,4 +1,4 @@
-# Integrantes: Daniel Gil Fino, Julián Andrés Ladino Nosa, Samuel Franco Salazar
+# Integrantes: Daniel Gil Fino, Julián Andrés Ladino Nossa, Samuel Franco Salazar
 
 defmodule Datos do
   @moduledoc """
@@ -115,7 +115,7 @@ end
 
       # Día 5
 
-       %{confeccionista: "C02", linea: "L1", dia: 5, prendas: 180, defectos: 1.9},
+      %{confeccionista: "C02", linea: "L1", dia: 5, prendas: 180, defectos: 1.9},
       %{confeccionista: "C02", linea: "L3", dia: 5, prendas: 20, defectos: 4},
       %{confeccionista: "C03", linea: "L2", dia: 5, prendas: 75, defectos: 2.4},
       %{confeccionista: "C03", linea: "L4", dia: 5, prendas: 40, defectos: 7.5},
@@ -131,7 +131,7 @@ end
 
       # Día 6
 
-       %{confeccionista: "C02", linea: "L2", dia: 6, prendas: 100, defectos: 2},
+      %{confeccionista: "C02", linea: "L2", dia: 6, prendas: 100, defectos: 2},
       %{confeccionista: "C02", linea: "L4", dia: 6, prendas: 80, defectos: 3},
       %{confeccionista: "C03", linea: "L1", dia: 6, prendas: 90, defectos: 5},
       %{confeccionista: "C03", linea: "L2", dia: 6, prendas: 40, defectos: 4.2},

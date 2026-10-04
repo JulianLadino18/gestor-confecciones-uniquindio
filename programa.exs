@@ -1,4 +1,6 @@
 Code.require_file("reportes.ex")
+Code.require_file("liquidacion.ex")
+Code.require_file("datos.exs")
 
 defmodule Programa do
     def main do
@@ -38,6 +40,19 @@ defmodule Programa do
     IO.puts("--------------------------------------------------")
     IO.inspect(produccion_combinada, label: "Produccion combinada final")
     IO.puts("==================================================")
+
+    # Prueba de Liquidacion de C1
+    lotes = Datos.lotes()
+    confeccionista = "C07"
+    liquidacion =
+      lotes
+      |> Liquidacion.calcular_valor_lotes_por_confeccionista(confeccionista)
+      |> Liquidacion.liquidar_confeccionista()
+
+  IO.puts("==================================================")
+  IO.puts("Liquidacion de #{confeccionista}")
+  IO.inspect(liquidacion)
+
   end
 end
 Programa.main()
