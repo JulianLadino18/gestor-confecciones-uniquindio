@@ -1,3 +1,5 @@
+# Integrantes: Daniel Gil Fino, Julián Andrés Ladino Nosa, Samuel Franco Salazar
+
 Code.require_file("liquidacion.ex")
 
 defmodule Reportes do
@@ -13,7 +15,7 @@ defmodule Reportes do
     def r1_lotes_rechazados(lotes_rechazados) do
         conteo_por_motivo =
             lotes_rechazados
-            |> Enum.frequencies_by(fn lote -> lote.motivo end)
+            |> Enum.frequencies_by(fn {_lote, motivo} -> motivo end)
 #se utiliza el Enum.frequencies_by/2 para agrupar y contar
 #en una sola pasada para contar cuantas veces aparece cada :motivo de rechazo en la lista
             %{
