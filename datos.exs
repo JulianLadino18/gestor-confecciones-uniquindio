@@ -27,7 +27,7 @@ defmodule Datos do
   end
 
   @doc """
-  función que devuelve la lista de producción del taller.
+  función que devuelve la lista de lineas de producción del taller.
   """
 
   def lineas do
