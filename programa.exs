@@ -1,5 +1,3 @@
-Code.require_file("reportes.ex")
-Code.require_file("liquidacion.ex")
 Code.require_file("datos.exs")
 
 defmodule Programa do
