@@ -6,18 +6,21 @@ defmodule Programa do
     IO.puts("   GESTION DE PRODUCCION - TALLER DE CONFECCIONES   ")
     IO.puts("==================================================\n")
 
-    # Lotes de prueba simulados
-    lotes_validos = [
-      %{dia: 1, prendas: 300, confeccionista: "C1", linea: "L1", defectos: 0.01},
-      %{dia: 1, prendas: 350, confeccionista: "C2", linea: "L2", defectos: 0.02},
-      %{dia: 2, prendas: 500, confeccionista: "C1", linea: "L1", defectos: 0.01},
-      %{dia: 3, prendas: 650, confeccionista: "C3", linea: "L3", defectos: 0.03},
-      %{dia: 4, prendas: 400, confeccionista: "C2", linea: "L2", defectos: 0.02},
-      %{dia: 5, prendas: 700, confeccionista: "C1", linea: "L1", defectos: 0.01},
-      %{dia: 6, prendas: 600, confeccionista: "C3", linea: "L3", defectos: 0.02}
-    ]
+    # Mapas indexados por código e id, construidos una sola vez
+    confeccionistas = for c <- Datos.confeccionistas(), into: %{}, do: {c.codigo, c}
+    lineas = for l <- Datos.lineas(), into: %{}, do: {l.id, l}
 
-    lotes = Datos.lotes()
+    # Se validan todos los lotes antes de efectuar cualquier cálculo
+    {lotes_validos, lotes_rechazados} =
+      Validacion.validar_lotes(Datos.lotes(), confeccionistas, lineas)
+
+    # Liquidación de TODOS los confeccionistas, incluso de quienes no tienen lotes
+    lotes_por_confeccionista = Enum.group_by(lotes_validos, fn lote -> lote.confeccionista end)
+
+    liquidaciones =
+      for {codigo, confeccionista} <- confeccionistas do
+        Liquidacion.liquidar(confeccionista, Map.get(lotes_por_confeccionista, codigo, []))
+      end
 
     # 1 prueba de R3
     reporte_r3 = Reportes.r3_produccion_diaria(lotes_validos)
@@ -29,7 +32,7 @@ defmodule Programa do
 
     # Prueba de R4
     IO.puts("--- R4: PRODUCCIÓN DE CADA CONFECCIONISTA ---")
-    lista_r4 = Reportes.r4_liquidacion_confeccionistas_ordenada(lotes_validos)
+    lista_r4 = Reportes.r4_liquidacion_confeccionistas_ordenada(liquidaciones)
     |> IO.inspect()
     IO.puts("==================================================")
 
@@ -39,9 +42,15 @@ defmodule Programa do
     |> Reportes.r7_total_neto()
     IO.puts("\n==================================================")
     IO.puts("--- R7: TOTALES DEL TALLER Y PROMEDIO ---")
-    IO.puts("Total Neto a Pagar:  $#{:erlang.float_to_binary(resumen_r7.total_a_pagar * 1.0, decimals: 2)}")
+    IO.puts("Total Neto a Pagar:  #{Util.formatear_dinero(resumen_r7.total_a_pagar)}")
     IO.puts("Total de Prendas:    #{resumen_r7.total_de_prenda}")
-    IO.puts("Promedio por Prenda: $#{Float.round(resumen_r7.promedio_por_prenda, 2)}")
+        promedio =
+      case resumen_r7.promedio_por_prenda do
+        :no_calculable -> "no puede calcularse (no hay prendas válidas)"
+        valor -> Util.formatear_dinero(valor)
+      end
+
+    IO.puts("Promedio por Prenda: #{promedio}")
     IO.puts("==================================================")
 
     # Prueba de C.2 combinar con el mapa de taller aliado
@@ -58,17 +67,16 @@ defmodule Programa do
     IO.inspect(produccion_combinada, label: "Produccion combinada final")
     IO.puts("==================================================")
 
-    # Prueba de Liquidacion de C1
+    # Comprobación del ejemplo del enunciado: C01 debe dar neto $598560.00
+    liquidacion_c01 = Enum.find(liquidaciones, fn liquidacion -> liquidacion.codigo == "C01" end)
+    IO.puts("Neto de C01: #{Util.formatear_dinero(liquidacion_c01.neto)}")
 
-    confeccionista = "C07"
-    liquidacion =
-      lotes
-      |> Liquidacion.calcular_valor_lotes_por_confeccionista(confeccionista)
-      |> Liquidacion.liquidar_confeccionista()
-
-  IO.puts("==================================================")
-  IO.puts("Liquidacion de #{confeccionista}")
-  IO.inspect(liquidacion)
+    # Pruebas de los demás reportes (luego se reemplazan por la impresión con formato)
+    IO.inspect(Reportes.r1_lotes_rechazados(lotes_rechazados), label: "R1")
+    IO.inspect(Reportes.r2_productividad_lineas(lotes_validos, Datos.lineas()), label: "R2")
+    IO.inspect(Reportes.r5_ganadores_diarios(lotes_validos, Datos.confeccionistas()), label: "R5")
+    IO.inspect(Reportes.r6_mejor_calidad(lotes_validos), label: "R6")
+    IO.inspect(Reportes.r8_cobertura_lineas(lotes_validos, Datos.lineas()), label: "R8")
 
   end
 end
