@@ -1,7 +1,5 @@
 # Integrantes: Daniel Gil Fino, Julián Andrés Ladino Nosa, Samuel Franco Salazar
 
-Code.require_file("liquidacion.ex")
-
 defmodule Reportes do
     @moduledoc """
     Módulo que sirva para generar los reportes que se requieren del programa.
