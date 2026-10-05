@@ -8,14 +8,17 @@ defmodule Reportes do
     - fecha: 2026-04-10
     """
 
+    # Meta diaria de producción del taller, en prendas
+    @meta_diaria 600
+
     # Desarrollo del reporte 1: lotes rechazados y motivos
 
     def r1_lotes_rechazados(lotes_rechazados) do
         conteo_por_motivo =
             lotes_rechazados
             |> Enum.frequencies_by(fn {_lote, motivo} -> motivo end)
-#se utiliza el Enum.frequencies_by/2 para agrupar y contar
-#en una sola pasada para contar cuantas veces aparece cada :motivo de rechazo en la lista
+        #se utiliza el Enum.frequencies_by/2 para agrupar y contar
+        #en una sola pasada para contar cuantas veces aparece cada :motivo de rechazo en la lista
             %{
                 lotes: lotes_rechazados,
                 conteo_por_motivo: conteo_por_motivo,
@@ -29,16 +32,16 @@ defmodule Reportes do
 
         lista_lineas
         |> Enum.map(fn linea ->
-            lotes = Map.get(lotes_por_linea, linea.codigo, [])
+            lotes = Map.get(lotes_por_linea, linea.id, [])
             total_prendas = Enum.reduce(lotes, 0, fn lote, acc -> acc + lote.prendas end)
             productividad = if linea.puestos > 0, do: total_prendas / linea.puestos, else: 0.0
 
             %{
-                codigo: linea.codigo,
+                id: linea.id,
                 nombre: linea.nombre,
                 puestos: linea.puestos,
                 prendas: total_prendas,
-                productividad: Float.round(productividad, 2)
+                productividad: productividad
             }
         end)
         |> Enum.sort_by(fn linea -> linea.productividad end, :desc)
@@ -55,7 +58,7 @@ defmodule Reportes do
         |>Enum.map(fn dia ->
             lotes = Map.get(lotes_por_dia, dia, [])
             total_prendas = Enum.reduce(lotes, 0, fn lote, acc -> acc + lote.prendas end)
-            {dia, %{prendas: total_prendas, alcanzo_meta?: total_prendas >= 600}}
+            {dia, %{prendas: total_prendas, alcanzo_meta?: total_prendas >= @meta_diaria}}
         end)
         |> Map.new()
 
@@ -75,23 +78,10 @@ defmodule Reportes do
 
     # Desarrollo del reporte 4: Generar el pago de todo los confeccionistas y ordenarlos de manera descendente.
 
-    def r4_liquidacion_confeccionistas_ordenada(lotes_validos) do
-        confeccionistas =
-            lotes_validos
-            |> Enum.map(&(&1.confeccionista))
-            |> Enum.uniq()
-        liquidaciones =
-            Enum.map(confeccionistas, fn confeccionista ->
-            dias_calculados = Liquidacion.calcular_valor_lotes_por_confeccionista(lotes_validos, confeccionista)
-            liq_final = Liquidacion.liquidar_confeccionista(dias_calculados)
-            total_prendas = Enum.reduce(dias_calculados, 0, fn dia, acc -> acc + dia.total_prendas end)
-            total_bonificaciones = Enum.reduce(dias_calculados, 0, fn dia, acc -> acc + dia.bonificacion_dia end)
-            %{confeccionista: confeccionista, prendas_totales: total_prendas, valor_lotes: liq_final.total_bruto - total_bonificaciones, bonificaciones: total_bonificaciones, descuento_alquiler: liq_final.descuento_alquiler, neto_a_pagar: liq_final.total_neto}
-            end)
-
+    def r4_liquidacion_confeccionistas_ordenada(liquidaciones) do
         # Ordenar de mayor a menor según el neto a pagar.
         liquidaciones
-            |> Enum.sort_by(&(&1.neto_a_pagar), :desc)
+            |> Enum.sort_by(&(&1.neto), :desc)
             |> Enum.with_index(1)
             |> Enum.map(fn {liq, idx} -> Map.put(liq, :posicion, idx) end)
     end
@@ -182,7 +172,7 @@ defmodule Reportes do
 
                     %{
                         confeccionista: confeccionista_cod,
-                        porcentaje_ponderado: Float.round(porcentaje_ponderado, 2),
+                        porcentaje_ponderado: porcentaje_ponderado,
                         total_lotes: length(lotes),
                         total_prendas: suma_prendas
                     }
@@ -195,17 +185,17 @@ defmodule Reportes do
 
     def r7_total_neto(liquidaciones) do
         total_taller =
-            Enum.reduce(liquidaciones, 0, fn liquidacion, acc -> acc + liquidacion.neto_a_pagar end)
+            Enum.reduce(liquidaciones, 0, fn liquidacion, acc -> acc + liquidacion.neto end)
         total_prendas =
-            Enum.reduce(liquidaciones, 0, fn liquidacion, acc -> acc + liquidacion.prendas_totales end)
-        promedio_por_prenda = total_taller / total_prendas
+            Enum.reduce(liquidaciones, 0, fn liquidacion, acc -> acc + liquidacion.prendas end)
+        promedio_por_prenda = if total_prendas > 0, do: total_taller / total_prendas, else: :no_calculable
         %{total_a_pagar: total_taller, total_de_prenda: total_prendas, promedio_por_prenda: promedio_por_prenda}
     end
 
     #Desarrollo del reporte 8: confeccionistas que cubren todas las lineas
 
     def r8_cobertura_lineas(lotes_validos, lista_lineas) do
-        codigos_lineas_totales = lista_lineas |> Enum.map(fn linea -> linea.codigo end) |> MapSet.new()
+        codigos_lineas_totales = lista_lineas |> Enum.map(fn linea -> linea.id end) |> MapSet.new()
 
     confeccionistas_cumplen =
         lotes_validos
