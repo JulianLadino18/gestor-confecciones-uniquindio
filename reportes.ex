@@ -1,17 +1,21 @@
-# Integrantes: Daniel Gil Fino, Julián Andrés Ladino Nosa, Samuel Franco Salazar
+# Integrantes: Daniel Gil Fino, Julián Andrés Ladino Nossa, Samuel Franco Salazar
 
 defmodule Reportes do
     @moduledoc """
     Módulo que sirva para generar los reportes que se requieren del programa.
     - version: 1.0.1
-    - autores: Daniel Gil Fino,Julian Andres Ladino Nossa
+    - autores: Daniel Gil Fino, Julián Andrés Ladino Nossa, Samuel Franco Salazar
     - fecha: 2026-04-10
     """
 
     # Meta diaria de producción del taller, en prendas
     @meta_diaria 600
 
-    # Desarrollo del reporte 1: lotes rechazados y motivos
+   @doc """
+  Desarrollo del reporte 1: Analiza los lotes rechazados y los agrupa según su motivo.
+
+  Retorna un mapa con la lista original de lotes, el conteo agrupado por motivo y el total de rechazados.
+  """
 
     def r1_lotes_rechazados(lotes_rechazados) do
         conteo_por_motivo =
@@ -26,7 +30,13 @@ defmodule Reportes do
             }
     end
 
-    # Desarrollo del reporte 2: productividad por linea
+    @doc """
+  Desarrollo del reporte 2: Calcula la productividad de cada línea de confección.
+  Agrupa los lotes válidos por línea y divide el total de prendas entre los puestos de trabajo.
+
+  Retorna una lista de mapas con la información de cada línea, ordenada de mayor a menor productividad.
+  """
+
     def r2_productividad_lineas(lotes_validos, lista_lineas) do
         lotes_por_linea = Enum.group_by(lotes_validos, fn lote -> lote.linea end)
 
@@ -48,7 +58,12 @@ defmodule Reportes do
 
     end
 
-    # Desarrollo del reporte 3: produccion diaria y cumplimiento de meta
+   @doc """
+  Desarrollo del reporte 3: Consolida la producción diaria de todo el taller.
+  Agrupa los lotes por día y verifica si se alcanzó la meta mínima de 600 prendas.
+
+  Retorna un mapa con el detalle por día, el consolidado de prendas y los indicadores de cumplimiento.
+  """
 
     def r3_produccion_diaria(lotes_validos) do
         lotes_por_dia = Enum.group_by(lotes_validos, fn lote -> lote.dia end)
@@ -63,7 +78,7 @@ defmodule Reportes do
         |> Map.new()
 
         #extrayendo solo el numero de prendas por dia para c.2
-        prenas_por_dia = mapa_diario |> Enum.map(fn {dia, info} -> {dia, info.prendas} end) |> Map.new()
+        prendas_por_dia = mapa_diario |> Enum.map(fn {dia, info} -> {dia, info.prendas} end) |> Map.new()
 
         meta_todos = Enum.all?(mapa_diario, fn {_dia, info} -> info.alcanzo_meta? end)
         meta_almenos_uno = Enum.any?(mapa_diario, fn {_dia, info} -> info.alcanzo_meta? end)
@@ -86,7 +101,12 @@ defmodule Reportes do
             |> Enum.map(fn {liq, idx} -> Map.put(liq, :posicion, idx) end)
     end
 
-    # Desarrollo del reporte 5: confeccionistas con mayor produccion
+    @doc """
+  Desarrollo del reporte 5: Identifica a los confeccionistas con mayor producción cada día
+  y determina al líder semanal (el que ganó más días).
+
+  Retorna un mapa con los ganadores diarios detallados y el ganador definitivo de la semana.
+  """
 
     def r5_ganadores_diarios(lotes_validos, _lista_confeccionistas) do
         lotes_por_dia = Enum.group_by(lotes_validos, fn lote -> lote.dia end)
@@ -151,7 +171,12 @@ defmodule Reportes do
         }
     end
 
-    # Desarrollo del reporte 6: confeccionista con mejor calidad
+  @doc """
+  Desarrollo del reporte 6: Evalúa la calidad de los confeccionistas.
+  Filtra aquellos con al menos 3 lotes válidos y calcula el porcentaje de defectos ponderado.
+
+  Retorna el mapa del confeccionista con el menor porcentaje de defectos ponderado, o :sin_candidatos_suficientes.
+  """
 
     def r6_mejor_calidad(lotes_validos) do
         candidatos =
@@ -192,8 +217,12 @@ defmodule Reportes do
         %{total_a_pagar: total_taller, total_de_prenda: total_prendas, promedio_por_prenda: promedio_por_prenda}
     end
 
-    #Desarrollo del reporte 8: confeccionistas que cubren todas las lineas
+    @doc """
+  Desarrollo del reporte 8: Verifica la versatilidad de los confeccionistas.
+  Comprueba cuáles confeccionistas han trabajado en todas las líneas disponibles en el taller.
 
+  Retorna una lista con los códigos de los confeccionistas que cumplen, o :ningun_confeccionista_cobertura_total.
+  """
     def r8_cobertura_lineas(lotes_validos, lista_lineas) do
         codigos_lineas_totales = lista_lineas |> Enum.map(fn linea -> linea.id end) |> MapSet.new()
 
