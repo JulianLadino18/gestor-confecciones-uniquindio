@@ -85,7 +85,7 @@ defmodule Reportes do
 
         %{
             detalle_diario: mapa_diario,
-            mapa_prendas_diarias: prenas_por_dia,
+            mapa_prendas_diarias: prendas_por_dia,
             cumpli_todos_los_dias?: meta_todos,
             cumpli_almenos_un_dia?: meta_almenos_uno
         }
@@ -241,6 +241,20 @@ defmodule Reportes do
             confeccionistas_cumplen
         end
     end
+
+    @doc """
+  C.1 Ordena liquidaciones según una keyword list.
+  """
+  def ranking(liquidaciones, opciones) do
+    campo = Keyword.get(opciones, :campo, :neto)
+    orden = Keyword.get(opciones, :orden, :desc)
+    limite = Keyword.get(opciones, :limite, length(liquidaciones))
+
+    liquidaciones
+    |> Enum.sort_by(fn liquidacion -> Map.fetch!(liquidacion, campo) end, orden)
+    |> Enum.take(limite)
+  end
+
 
     # C.2 combinar la produccion diaria R3 con el mapa de taller_aliado
 
